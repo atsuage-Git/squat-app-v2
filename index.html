@@ -99,3 +99,117 @@
     <div id="total-area">
         累計: <span id="totalCount">0</span> 回
     </div>
+
+    <div id="character-container">
+        <div id="character">🏋️</div>
+    </div>
+    
+    <div class="controls">
+        <p>今日の目標: <input type="number" id="targetCount" value="10"></p>
+        <div id="count">0</div>
+        <p id="status">開始ボタンを押してね</p>
+    </div>
+
+    <button id="startBtn" onclick="startApp()">計測スタート</button>
+
+    <script>
+        let count = 0;
+        let totalCount = 0;
+        let isSquatting = false;
+        let audioContext = null;
+
+        const THRESHOLD_DOWN = 6.0;
+        const THRESHOLD_UP = 13.0;
+
+        window.onload = function() {
+            let savedData = localStorage.getItem('squatTotalV2'); 
+            if (savedData) {
+                totalCount = parseInt(savedData);
+            }
+            document.getElementById('totalCount').innerText = totalCount;
+        };
+
+        function startApp() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                            document.getElementById('status').innerText = "スマホを持ってスクワット！";
+                            document.getElementById('startBtn').style.display = 'none';
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+                document.getElementById('status').innerText = "スマホを持ってスクワット！";
+                document.getElementById('startBtn').style.display = 'none';
+            }
+        }
+
+        function handleMotion(event) {
+            const y = event.accelerationIncludingGravity.y;
+            const z = event.accelerationIncludingGravity.z;
+            let acc = Math.abs(y);
+            if(Math.abs(z) > acc) acc = Math.abs(z);
+
+            // --- しゃがむ動作 ---
+            if (acc < THRESHOLD_DOWN && !isSquatting) {
+                isSquatting = true;
+                // ★追加：絵文字にクラスを追加して変形させる
+                document.getElementById('character').classList.add('squat-pose');
+            }
+
+            // --- 立ち上がる動作 ---
+            if (acc > THRESHOLD_UP && isSquatting) {
+                count++;
+                totalCount++;
+
+                document.getElementById('count').innerText = count;
+                document.getElementById('totalCount').innerText = totalCount;
+                localStorage.setItem('squatTotalV2', totalCount);
+
+                isSquatting = false;
+                
+                // ★追加：絵文字からクラスを外して元に戻す
+                document.getElementById('character').classList.remove('squat-pose');
+                
+                checkTarget();
+            }
+        }
+
+        function checkTarget() {
+            const target = document.getElementById('targetCount').value;
+            if (count >= target) {
+                playHappySound();
+                document.getElementById('status').innerText = "目標達成！おめでとう！";
+            }
+        }
+
+        function playHappySound() {
+            if (!audioContext) return;
+            playTone(523.25, 0.0, 0.1);
+            playTone(659.25, 0.1, 0.1);
+            playTone(783.99, 0.2, 0.1);
+            playTone(1046.50, 0.3, 0.4);
+        }
+
+        function playTone(freq, startTime, duration) {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            const now = audioContext.currentTime;
+            osc.start(now + startTime);
+            gain.gain.setValueAtTime(0.5, now + startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + startTime + duration);
+            osc.stop(now + startTime + duration);
+        }
+    </script>
+</body>
+</html>
