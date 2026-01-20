@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>スクワットチャレンジ</title>
+    
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/FF5722/ffffff.png?text=V2&font=roboto">
+    <link rel="icon" href="https://placehold.co/64x64/FF5722/ffffff.png?text=V2">
+
+    <style>
+        body {
+            font-family: sans-serif;
+            text-align: center;
+            background-color: #fff3e0; /* 背景色を少し変えて区別しやすくしました */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+        h1 { margin-bottom: 10px; color: #e64a19; }
+        
+        /* 今日の回数 */
+        #count {
+            font-size: 80px;
+            font-weight: bold;
+            color: #333;
+            margin: 10px 0;
+        }
+
+        /* 累計回数のデザイン */
+        #total-area {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 8px;
+            display: inline-block;
+        }
+        #totalCount {
+            font-weight: bold;
+            color: #e64a19; /* テーマカラーのオレンジ */
+            font-size: 24px;
+        }
+
+        .controls {
+            margin: 20px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button {
+            font-size: 20px;
+            padding: 15px 40px;
+            background-color: #FF5722; /* ボタンもオレンジに変更 */
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 #d84315;
+        }
+        button:active { 
+            background-color: #f4511e; 
+            box-shadow: 0 2px 0 #d84315;
+            transform: translateY(2px);
+        }
+        input {
+            font-size: 20px;
+            width: 60px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>スクワットV2</h1>
+    
+    <div class="controls">
+        <div id="total-area">
+            これまでの累計<br>
+            <span id="totalCount">0</span> 回
+        </div>
+
+        <p>今日の目標: <input type="number" id="targetCount" value="10"></p>
+        
+        <div id="count">0</div>
+        <p id="status">開始ボタンを押してね</p>
+    </div>
+
+    <button id="startBtn" onclick="startApp()">計測スタート</button>
+
+    <script>
+        let count = 0; // 今日の回数
+        let totalCount = 0; // 累計回数
+        let isSquatting = false;
+        let audioContext = null;
+
+        const THRESHOLD_DOWN = 6.0;
+        const THRESHOLD_UP = 13.0;
+
+        // アプリ起動時にデータを読み込む
+        window.onload = function() {
+            let savedData = localStorage.getItem('squatTotalV2'); // V2用の保存場所を使用
+            if (savedData) {
+                totalCount = parseInt(savedData);
+            }
+            document.getElementById('totalCount').innerText = totalCount;
+        };
+
+        function startApp() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (typeof DeviceMotionEvent.requestPermission === 'function') {
+                DeviceMotionEvent.requestPermission()
+                    .then(permissionState => {
+                        if (permissionState === 'granted') {
+                            window.addEventListener('devicemotion', handleMotion);
+                            document.getElementById('status').innerText = "スマホを持ってスクワット！";
+                            document.getElementById('startBtn').style.display = 'none';
+                        }
+                    })
+                    .catch(console.error);
+            } else {
+                window.addEventListener('devicemotion', handleMotion);
+                document.getElementById('status').innerText = "スマホを持ってスクワット！";
+                document.getElementById('startBtn').style.display = 'none';
+            }
+        }
+
+        function handleMotion(event) {
+            const y = event.accelerationIncludingGravity.y;
+            const z = event.accelerationIncludingGravity.z;
+            let acc = Math.abs(y);
+            if(Math.abs(z) > acc) acc = Math.abs(z);
+
+            if (acc < THRESHOLD_DOWN && !isSquatting) {
+                isSquatting = true;
+            }
+            if (acc > THRESHOLD_UP && isSquatting) {
+                count++;
+                totalCount++;
+
+                document.getElementById('count').innerText = count;
+                document.getElementById('totalCount').innerText = totalCount;
+
+                // データを保存（V2専用の場所に保存）
+                localStorage.setItem('squatTotalV2', totalCount);
+
+                isSquatting = false;
+                checkTarget();
+            }
+        }
+
+        function checkTarget() {
+            const target = document.getElementById('targetCount').value;
+            if (count >= target) {
+                playHappySound();
+                document.getElementById('status').innerText = "目標達成！おめでとう！";
+            }
+        }
+
+        function playHappySound() {
+            if (!audioContext) return;
+            playTone(523.25, 0.0, 0.1);
+            playTone(659.25, 0.1, 0.1);
+            playTone(783.99, 0.2, 0.1);
+            playTone(1046.50, 0.3, 0.4);
+        }
+
+        function playTone(freq, startTime, duration) {
+            const osc = audioContext.createOscillator();
+            const gain = audioContext.createGain();
+            osc.type = 'sine';
+            osc.frequency.value = freq;
+            osc.connect(gain);
+            gain.connect(audioContext.destination);
+            const now = audioContext.currentTime;
+            osc.start(now + startTime);
+            gain.gain.setValueAtTime(0.5, now + startTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + startTime + duration);
+            osc.stop(now + startTime + duration);
+        }
+    </script>
+</body>
+</html>
