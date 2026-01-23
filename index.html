@@ -3,118 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>スクワットV3</title>
+    <title>スクワットV5</title>
     
-    <link rel="apple-touch-icon" href="https://placehold.co/180x180/FF5722/ffffff.png?text=V3&font=roboto">
-    <link rel="icon" href="https://placehold.co/64x64/FF5722/ffffff.png?text=V3">
+    <link rel="apple-touch-icon" href="https://placehold.co/180x180/2196F3/ffffff.png?text=LOG&font=roboto">
+    <link rel="icon" href="https://placehold.co/64x64/2196F3/ffffff.png?text=LOG">
 
     <style>
         body {
             font-family: sans-serif;
             text-align: center;
-            background-color: #fff3e0;
+            background-color: #e3f2fd;
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            height: 100vh;
+            align-items: center;
+            min-height: 100vh;
             margin: 0;
             user-select: none;
             -webkit-user-select: none;
             touch-action: manipulation;
-            overflow: hidden; /* スクロール防止 */
+            padding-bottom: 50px;
         }
-        h1 { margin-bottom: 5px; color: #e64a19; font-size: 24px; }
+        h1 { margin: 10px 0; color: #1565c0; font-size: 24px; }
         
-        /* 累計回数のデザイン */
-        #total-area {
-            font-size: 16px;
-            color: #666;
-            margin-bottom: 10px;
-            padding: 5px 15px;
-            background-color: rgba(255, 255, 255, 0.6);
-            border-radius: 20px;
-            display: inline-block;
-        }
-        #totalCount { font-weight: bold; color: #e64a19; font-size: 20px; }
-
-        /* --- ★追加：キャラクター（絵文字）のデザイン --- */
+        /* キャラクターエリア */
         #character-container {
-            height: 200px;
+            height: 180px; /* 画像に合わせて少し高くしました */
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 10px 0;
-        }
-        #character {
-            font-size: 120px; /* 絵文字の大きさ */
-            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* なめらかに動く設定 */
-            display: inline-block;
+            margin-bottom: 10px;
         }
         
-        /* --- ★追加：しゃがんだ時の動き --- */
-        .squat-pose {
-            /* 下に50px移動し、少し横に潰れて踏ん張る形に変形 */
-            transform: translateY(50px) scale(1.1, 0.9); 
+        /* --- ★変更：絵文字ではなく画像用の設定 --- */
+        #character-img {
+            width: 150px; /* 画像の表示サイズ */
+            height: auto; /* 高さは自動調整 */
+            /* なめらかな動きの設定 */
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        
+        /* しゃがんだ時の動き（画像にも適用されます） */
+        .squat-pose { transform: translateY(40px) scale(1.1, 0.9); }
 
         /* 今日の回数 */
-        #count {
-            font-size: 60px;
-            font-weight: bold;
-            color: #333;
-            margin: 5px 0;
-        }
-
-        .controls {
-            margin: 10px 20px;
-            padding: 15px;
+        #count-area {
             background: white;
-            border-radius: 15px;
+            padding: 20px;
+            border-radius: 20px;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            position: relative;
-            z-index: 10;
+            width: 80%;
+            max-width: 300px;
+            margin-bottom: 20px;
         }
+        #count { font-size: 60px; font-weight: bold; color: #333; margin: 5px 0; }
+        
         button {
-            font-size: 20px;
-            padding: 15px 40px;
-            background-color: #FF5722;
+            font-size: 18px;
+            padding: 12px 30px;
+            background-color: #2196F3;
             color: white;
             border: none;
             border-radius: 30px;
             cursor: pointer;
-            box-shadow: 0 4px 0 #d84315;
-            margin-top: 10px;
+            box-shadow: 0 4px 0 #1565c0;
+            margin-bottom: 20px;
         }
         button:active { 
-            background-color: #f4511e; 
-            box-shadow: 0 2px 0 #d84315;
+            background-color: #1976d2; 
+            box-shadow: 0 2px 0 #1565c0;
             transform: translateY(2px);
         }
+
+        /* 履歴リストのデザイン */
+        #history-area { width: 90%; max-width: 400px; margin-top: 20px; }
+        h2 { font-size: 18px; color: #555; margin-bottom: 10px; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background-color: #bbdefb; color: #333; font-weight: bold; }
+        td { color: #555; }
+        .count-col { text-align: right; font-weight: bold; color: #1565c0; }
+        .today-row { background-color: #fff9c4; } 
         input { font-size: 20px; width: 60px; text-align: center; }
     </style>
 </head>
 <body>
-    <h1>スクワットV3</h1>
-    
-    <div id="total-area">
-        累計: <span id="totalCount">0</span> 回
-    </div>
+    <h1>スクワット日記V5</h1>
 
     <div id="character-container">
-        <div id="character">🏋️</div>
+        <img id="character-img" src="squat-chara.png" alt="スクワットキャラクター">
     </div>
     
-    <div class="controls">
-        <p>今日の目標: <input type="number" id="targetCount" value="10"></p>
+    <div id="count-area">
+        <div style="font-size:14px; color:#666;">今日の回数</div>
         <div id="count">0</div>
-        <p id="status">開始ボタンを押してね</p>
+        <p style="margin:5px 0;">目標: <input type="number" id="targetCount" value="10"></p>
+        <p id="status" style="font-size:14px; color:#888;">開始ボタンを押してね</p>
     </div>
 
     <button id="startBtn" onclick="startApp()">計測スタート</button>
 
+    <div id="history-area">
+        <h2>過去の記録</h2>
+        <table id="historyTable">
+            <thead>
+                <tr><th>日付</th><th style="text-align:right;">回数</th></tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+        </table>
+    </div>
+
     <script>
         let count = 0;
-        let totalCount = 0;
+        let historyData = {};
         let isSquatting = false;
         let audioContext = null;
 
@@ -122,30 +129,27 @@
         const THRESHOLD_UP = 13.0;
 
         window.onload = function() {
-            let savedData = localStorage.getItem('squatTotalV2'); 
-            if (savedData) {
-                totalCount = parseInt(savedData);
-            }
-            document.getElementById('totalCount').innerText = totalCount;
+            let savedJson = localStorage.getItem('squatHistoryV4'); // V4と同じ保存場所を使います
+            if (savedJson) { historyData = JSON.parse(savedJson); }
+            const today = getTodayDate();
+            if (historyData[today]) { count = historyData[today]; } else { count = 0; }
+            updateDisplay();
         };
 
         function startApp() {
-            if (!audioContext) {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            }
+            if (!audioContext) { audioContext = new (window.AudioContext || window.webkitAudioContext)(); }
             if (typeof DeviceMotionEvent.requestPermission === 'function') {
                 DeviceMotionEvent.requestPermission()
                     .then(permissionState => {
                         if (permissionState === 'granted') {
                             window.addEventListener('devicemotion', handleMotion);
-                            document.getElementById('status').innerText = "スマホを持ってスクワット！";
+                            document.getElementById('status').innerText = "スクワット開始！";
                             document.getElementById('startBtn').style.display = 'none';
                         }
-                    })
-                    .catch(console.error);
+                    }).catch(console.error);
             } else {
                 window.addEventListener('devicemotion', handleMotion);
-                document.getElementById('status').innerText = "スマホを持ってスクワット！";
+                document.getElementById('status').innerText = "スクワット開始！";
                 document.getElementById('startBtn').style.display = 'none';
             }
         }
@@ -156,36 +160,59 @@
             let acc = Math.abs(y);
             if(Math.abs(z) > acc) acc = Math.abs(z);
 
-            // --- しゃがむ動作 ---
             if (acc < THRESHOLD_DOWN && !isSquatting) {
                 isSquatting = true;
-                // ★追加：絵文字にクラスを追加して変形させる
-                document.getElementById('character').classList.add('squat-pose');
+                // ★変更：操作する対象のIDを画像のものに変更
+                document.getElementById('character-img').classList.add('squat-pose');
             }
 
-            // --- 立ち上がる動作 ---
             if (acc > THRESHOLD_UP && isSquatting) {
                 count++;
-                totalCount++;
-
-                document.getElementById('count').innerText = count;
-                document.getElementById('totalCount').innerText = totalCount;
-                localStorage.setItem('squatTotalV2', totalCount);
-
+                const today = getTodayDate();
+                historyData[today] = count;
+                localStorage.setItem('squatHistoryV4', JSON.stringify(historyData));
+                updateDisplay();
                 isSquatting = false;
-                
-                // ★追加：絵文字からクラスを外して元に戻す
-                document.getElementById('character').classList.remove('squat-pose');
-                
+                // ★変更：操作する対象のIDを画像のものに変更
+                document.getElementById('character-img').classList.remove('squat-pose');
                 checkTarget();
             }
+        }
+
+        function updateDisplay() {
+            document.getElementById('count').innerText = count;
+            const tbody = document.getElementById('historyBody');
+            tbody.innerHTML = "";
+            const sortedDates = Object.keys(historyData).sort().reverse();
+            const today = getTodayDate();
+            sortedDates.forEach(date => {
+                const val = historyData[date];
+                const tr = document.createElement('tr');
+                if (date === today) { tr.classList.add('today-row'); }
+                const tdDate = document.createElement('td');
+                tdDate.innerText = date;
+                tr.appendChild(tdDate);
+                const tdCount = document.createElement('td');
+                tdCount.innerText = val + " 回";
+                tdCount.classList.add('count-col');
+                tr.appendChild(tdCount);
+                tbody.appendChild(tr);
+            });
+        }
+
+        function getTodayDate() {
+            const dt = new Date();
+            const y = dt.getFullYear();
+            const m = dt.getMonth() + 1;
+            const d = dt.getDate();
+            return `${y}/${m}/${d}`;
         }
 
         function checkTarget() {
             const target = document.getElementById('targetCount').value;
             if (count >= target) {
                 playHappySound();
-                document.getElementById('status').innerText = "目標達成！おめでとう！";
+                document.getElementById('status').innerText = "目標達成！";
             }
         }
 
